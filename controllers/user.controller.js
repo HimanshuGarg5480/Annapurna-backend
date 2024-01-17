@@ -158,7 +158,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   try {
-    const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken;
+    const incomingRefreshToken =
+      req.cookie.refreshToken || req.body.refreshToken;
     if (!incomingRefreshToken) {
       throw new ApiError(401, "unauthorized request");
     }
@@ -166,17 +167,19 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
-  
+
     const user = await User.findById(decodedToken._id);
     if (!user) {
       throw new ApiError(401, "Invalid Refresh Token");
     }
-  
+
     if (incomingRefreshToken !== user.refreshToken) {
       throw new ApiError(401, "Refresh Token is expired or used");
     }
-  
-    const { accessToken, refreshToken } = generateAccessAndRefreshToken(user._id);
+
+    const { accessToken, refreshToken } = generateAccessAndRefreshToken(
+      user._id
+    );
     res
       .status(200)
       .cookie("accessToken", accessToken)
@@ -189,8 +192,39 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
-    throw new ApiError(401,error?.message||"Invalid Refresh Token")
+    throw new ApiError(401, error?.message || "Invalid Refresh Token");
   }
 });
 
-export { registerUser, loginUser, logoutUser,refreshAccessToken };
+const changeUserPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+  if (newPassword != confirmPassword) {
+    throw new ApiError(401, "newPassword and confirmPassword are different");
+  }
+  const user = await findById(req.user?._id);
+  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "wrong old password");
+  }
+  user.password = newPassword;
+  await user.save({ validateBeforeSave: false });
+
+  res
+    .status(201)
+    .json(new ApiResponse(200, {}, "password changed successfully"));
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res
+    .status(201)
+    .json(new ApiResponse(200, req.user, "fetched current user successfully"));
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+  changeUserPassword,
+  getCurrentUser
+};
