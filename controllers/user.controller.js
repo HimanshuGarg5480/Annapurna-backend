@@ -70,7 +70,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required");
   }
-
+  
   const user = await User.create({
     avatar: avatar.url,
     coverImage: coverImage?.url || "",
@@ -79,6 +79,12 @@ const registerUser = asyncHandler(async (req, res) => {
     confirmpassword,
     username: username.toLowerCase(),
   });
+
+  const Options = {
+    httpOnly: true,
+    secure: true,
+  };
+  const {accessToken,refreshToken}=await generateAccessAndRefreshToken(user._id);
 
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -89,7 +95,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   return res
-    .status(201)
+    .status(201).cookie("accessToken", accessToken, Options).cookie("refreshToken", refreshToken, Options)
     .json(new ApiResponse(200, createdUser, "User registered Successfully"));
 });
 
