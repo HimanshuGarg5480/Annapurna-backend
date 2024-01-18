@@ -16,9 +16,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      validate: function () {
-        return emailValidator.validate(this.email);
-      },
     },
     password: {
       type: String,

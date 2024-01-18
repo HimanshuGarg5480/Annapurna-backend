@@ -32,11 +32,14 @@ const registerUser = asyncHandler(async (req, res) => {
   // check for user creation
   // return res
 
-  const { email, username, password } = req.body;
+  const { email, username, password,confirmpassword } = req.body;
   // console.log("email: ", email);
 
-  if ([email, username, password].some((field) => field?.trim() === "")) {
+  if ([email, username, password,confirmpassword].some((field) => field?.trim() === "")) {
     throw new ApiError(400, "All fields are required");
+  }
+  if (password !== confirmpassword) {
+    throw new ApiError(409, "password and confirm-password are not same");
   }
 
   const existedUser = await User.findOne({
@@ -46,7 +49,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User with email or username already exists");
   }
-
+  
   const avatarLocalPath = req.files?.avatar[0]?.path;
   let coverImageLocalPath;
   if (
@@ -57,7 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
     coverImageLocalPath = req.files.coverImage[0].path;
   }
 
-  if (!avatarLocalPath) {
+  if (!avatarLocalPath) {   
     throw new ApiError(400, "Avatar file is required");
   }
 
@@ -73,6 +76,7 @@ const registerUser = asyncHandler(async (req, res) => {
     coverImage: coverImage?.url || "",
     email,
     password,
+    confirmpassword,
     username: username.toLowerCase(),
   });
 
