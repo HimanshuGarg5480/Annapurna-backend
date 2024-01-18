@@ -6,8 +6,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async function (user_id) {
-  try {
-    const user = await User.findById(user_id);
+  try {  
+    const user = await User.findById(user_id);  
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
     user.refreshToken = refreshToken;
@@ -115,7 +115,7 @@ const loginUser = asyncHandler(async (req, res) => {
   }
   //access and refersh token
   const { accessToken, refreshToken } = generateAccessAndRefreshToken(user._id);
-  const logedInUser = await findById(user._id).select(
+  const logedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
   //send cookie
