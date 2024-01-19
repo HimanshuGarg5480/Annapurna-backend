@@ -1,13 +1,14 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
+import { Donation } from "../models/donationModel.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async function (user_id) {
-  try {  
-    const user = await User.findById(user_id);  
+  try {
+    const user = await User.findById(user_id);
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
     user.refreshToken = refreshToken;
@@ -32,10 +33,14 @@ const registerUser = asyncHandler(async (req, res) => {
   // check for user creation
   // return res
 
-  const { email, username, password,confirmpassword } = req.body;
+  const { email, username, password, confirmpassword } = req.body;
   // console.log("email: ", email);
 
-  if ([email, username, password,confirmpassword].some((field) => field?.trim() === "")) {
+  if (
+    [email, username, password, confirmpassword].some(
+      (field) => field?.trim() === ""
+    )
+  ) {
     throw new ApiError(400, "All fields are required");
   }
   if (password !== confirmpassword) {
@@ -49,7 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User with email or username already exists");
   }
-  
+
   const avatarLocalPath = req.files?.avatar[0]?.path;
   let coverImageLocalPath;
   if (
@@ -60,7 +65,7 @@ const registerUser = asyncHandler(async (req, res) => {
     coverImageLocalPath = req.files.coverImage[0].path;
   }
 
-  if (!avatarLocalPath) {   
+  if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
   }
 
@@ -70,7 +75,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!avatar) {
     throw new ApiError(400, "Avatar file is required");
   }
-  
+
   const user = await User.create({
     avatar: avatar.url,
     coverImage: coverImage?.url || "",
@@ -84,7 +89,9 @@ const registerUser = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: true,
   };
-  const {accessToken,refreshToken}=await generateAccessAndRefreshToken(user._id);
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    user._id
+  );
 
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -95,7 +102,9 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   return res
-    .status(201).cookie("accessToken", accessToken, Options).cookie("refreshToken", refreshToken, Options)
+    .status(201)
+    .cookie("accessToken", accessToken, Options)
+    .cookie("refreshToken", refreshToken, Options)
     .json(new ApiResponse(200, createdUser, "User registered Successfully"));
 });
 
@@ -230,11 +239,28 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, "fetched current user successfully"));
 });
 
+const getUserDonations = asyncHandler(async (req, res) => {
+  const user = await User.findOne({ _id: req.user?._id }).populate({
+    path: "donations",
+  });
+  //console.log(user);
+  return res.status(201).json(
+    new ApiResponse(
+      200,
+      {
+        Donations: user.donations,
+      },
+      "fetched user donations successfully"
+    )
+  );
+});
+
 export {
   registerUser,
   loginUser,
   logoutUser,
   refreshAccessToken,
   changeUserPassword,
-  getCurrentUser
+  getCurrentUser,
+  getUserDonations,
 };
