@@ -1,5 +1,6 @@
-const mongoose = require("mongoose");
-
+import mongoose from "mongoose";
+import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken";
 const ngoSchema = new mongoose.Schema({
   ngoname: {
     type: String,
@@ -18,6 +19,13 @@ const ngoSchema = new mongoose.Schema({
   confirmpassword: {
     type: String,
     required: true,
+  },
+  NgoImage:{
+    type: String,
+    required: true,
+  },
+  refreshToken:{
+    type:String
   },
   phone: {
     type: String,

@@ -15,11 +15,13 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 import userRouter from './routes/user.routes.js'
-
+import ngoRouter from './routes/ngo.routes.js'
 
 //routes declaration
 app.use("/api/v1/users", userRouter)
+app.use("/api/v1/ngo", ngoRouter)
 
 // http://localhost:8000/api/v1/users/register
+// http://localhost:8000/api/v1/ngo/register
 
 export { app }

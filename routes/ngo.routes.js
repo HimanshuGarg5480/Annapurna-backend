@@ -1,14 +1,17 @@
-const express = require('express');
-const ngoRouter = express.Router();
-const User = require('../models/user');
-const ngoController = require('../controllers/ngoController');
+import { Router } from "express";
+import { upload } from "../middlewares/multer.middleware.js";
+import verifyJWT from "../middlewares/auth.middleware.js";
+import { ngoSignUp } from "../controllers/ngo.controller.js";
+const router = Router();
 
-//user login
-ngoRouter.get('/ngo/login',ngoController.loginNgo);
+router.route("/register").post(
+  upload.fields([
+    {
+      name: "NgoImage",
+      maxCount: 1,
+    },
+  ]),
+  ngoSignUp
+);
 
-//user signup
-ngoRouter.post('/ngo/signUp', ngoController.createNgo);
-
-
-
-module.exports = ngoRouter;
+export default router
