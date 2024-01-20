@@ -154,4 +154,64 @@ const loginNgo = asyncHandler(async (req, res) => {
     );
 });
 
-export { ngoSignUp,loginNgo};
+const logoutNgo = asyncHandler(async (req, res) => {
+  await Ngo.findByIdAndUpdate(
+    req.ngo._id,
+    {
+      $set: { refreshToken: undefined },
+    },
+    {
+      new: true,
+    }
+  );
+  const Options = {
+    httpOnly: true,
+    secure: true,
+  };
+  res
+    .status(201)
+    .clearCookie("accessToken", Options)
+    .clearCookie("refreshToken", Options)
+    .json(new ApiResponse(201, {}, "ngo logged out successfully"));
+});
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  try {
+    const incomingRefreshToken =
+      req.cookie?.refreshToken || req.body.refreshToken;
+    if (!incomingRefreshToken) {
+      throw new ApiError(401, "unauthorized request");
+    }
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    const ngo = await Ngo.findById(decodedToken._id);
+    if (!ngo) {
+      throw new ApiError(401, "Invalid Refresh Token");
+    }
+
+    if (incomingRefreshToken !== Ngo.refreshToken) {
+      throw new ApiError(401, "Refresh Token is expired or used");
+    }
+
+    const { accessToken, refreshToken } = generateAccessAndRefreshToken(
+      ngo._id
+    );
+    res
+      .status(200)
+      .cookie("accessToken", accessToken)
+      .cookie("refreshToken", refreshToken)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken },
+          "Access token refreshed"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid Refresh Token");
+  }
+}); 
+export { ngoSignUp,loginNgo,logoutNgo,refreshAccessToken};

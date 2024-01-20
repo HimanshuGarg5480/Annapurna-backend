@@ -1,7 +1,12 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
-import verifyJWT from "../middlewares/userAuth.middleware.js";
-import { loginNgo, ngoSignUp } from "../controllers/ngo.controller.js";
+import {
+  loginNgo,
+  logoutNgo,
+  ngoSignUp,
+  refreshAccessToken,
+} from "../controllers/ngo.controller.js";
+import verifyNgoJWT from "../middlewares/ngoAuth.middleware.js";
 const router = Router();
 
 router.route("/register").post(
@@ -14,8 +19,9 @@ router.route("/register").post(
   ngoSignUp
 );
 
-router.route("/login").post(
-  loginNgo
-);
+router.route("/login").post(loginNgo);
 
-export default router
+router.route("/logout").post(verifyNgoJWT, logoutNgo);
+router.route("/refresh-token").post(refreshAccessToken)
+
+export default router;
