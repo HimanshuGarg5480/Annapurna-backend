@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
 import verifyJWT from "../middlewares/auth.middleware.js";
-import { ngoSignUp } from "../controllers/ngo.controller.js";
+import { loginNgo, ngoSignUp } from "../controllers/ngo.controller.js";
 const router = Router();
 
 router.route("/register").post(
@@ -12,6 +12,10 @@ router.route("/register").post(
     },
   ]),
   ngoSignUp
+);
+
+router.route("/login").post(
+  loginNgo
 );
 
 export default router

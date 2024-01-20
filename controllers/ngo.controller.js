@@ -5,25 +5,24 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 
-const generateAccessAndRefreshToken = async function (user_id) {
+const generateAccessAndRefreshToken = async function (ngo_id) {
   try {
-    const ngo = await Ngo.findById(user_id);
+    const ngo = await Ngo.findById(ngo_id);
     const accessToken = ngo.generateAccessToken();
     const refreshToken = ngo.generateRefreshToken();
     ngo.refreshToken = refreshToken;
     await ngo.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
   } catch (error) {
-    console.log(error)
+    console.log(error);
     throw new ApiError(
       500,
       "Something went wrong while generating access and refresh token"
     );
   }
 };
-// Create a new user
+// Create a new ngo
 const ngoSignUp = asyncHandler(async (req, res) => {
-  
   const {
     ngoname,
     email,
@@ -62,7 +61,7 @@ const ngoSignUp = asyncHandler(async (req, res) => {
   }
 
   const ngoImageOrLogo = req.files?.NgoImage[0]?.path;
-  
+
   if (!ngoImageOrLogo) {
     throw new ApiError(400, "Ngo Image or Logo file is required");
   }
@@ -72,7 +71,7 @@ const ngoSignUp = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Ngo Image file is required");
   }
   const ngo = await Ngo.create({
-    NgoImage:ngoImage.url,
+    NgoImage: ngoImage.url,
     email,
     password,
     confirmpassword,
@@ -105,7 +104,54 @@ const ngoSignUp = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, Options)
     .cookie("refreshToken", refreshToken, Options)
     .json(new ApiResponse(200, createdNgo, "ngo registered Successfully"));
-
 });
 
-export {ngoSignUp};
+const loginNgo = asyncHandler(async (req, res) => {
+  //req body->data
+  const { ngoname, email, password} = req.body;
+  //ngoname or email
+  if ([ngoname, email, password].some((field) => field?.trim() === "")) {
+    throw new ApiError(400, "All fields are required");
+  }
+  //find the ngo
+  const ngo = await Ngo.findOne({
+    email:email
+  });
+  // console.log(ngoname," ", email," ", password,)
+  if (!ngo) {
+    
+    throw new ApiError(409, "Ngo with email or ngoname does not exists");
+  }
+  //password check
+  const isPasswordvalid = await ngo.isPasswordCorrect(password);
+  // console.log(isPasswordvalid)
+  if (!isPasswordvalid) {
+    throw new ApiError(401, "passoword incorrect");
+  }
+  //access and refersh token
+  const { accessToken, refreshToken } = generateAccessAndRefreshToken(ngo._id);
+  const logedInNgo = await Ngo.findById(ngo._id).select(
+    "-password -refreshToken"
+  );
+  //send cookie
+  const Options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, Options)
+    .cookie("refreshToken", refreshToken, Options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          ngo: { logedInNgo, accessToken, refreshToken },
+        },
+        "ngo logged in successfully"
+      )
+    );
+});
+
+export { ngoSignUp,loginNgo};
