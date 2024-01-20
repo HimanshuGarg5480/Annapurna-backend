@@ -1,6 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Ngo } from "../models/Ngos.js";
+import { Ngo } from "../models/ngo.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
@@ -108,18 +108,17 @@ const ngoSignUp = asyncHandler(async (req, res) => {
 
 const loginNgo = asyncHandler(async (req, res) => {
   //req body->data
-  const { ngoname, email, password} = req.body;
+  const { ngoname, email, password } = req.body;
   //ngoname or email
   if ([ngoname, email, password].some((field) => field?.trim() === "")) {
     throw new ApiError(400, "All fields are required");
   }
   //find the ngo
   const ngo = await Ngo.findOne({
-    email:email
+    email: email,
   });
   // console.log(ngoname," ", email," ", password,)
   if (!ngo) {
-    
     throw new ApiError(409, "Ngo with email or ngoname does not exists");
   }
   //password check
@@ -213,7 +212,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new ApiError(401, error?.message || "Invalid Refresh Token");
   }
-}); 
+});
 
 const changeNgoPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword, confirmPassword } = req.body;
@@ -232,4 +231,34 @@ const changeNgoPassword = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(200, {}, "password changed successfully"));
 });
-export { ngoSignUp,loginNgo,logoutNgo,refreshAccessToken,changeNgoPassword};
+
+const getCurrentNgo = asyncHandler(async (req, res) => {
+  return res
+    .status(201)
+    .json(new ApiResponse(200, req.ngo, "fetched current user successfully"));
+});
+
+const getNgoDonations = asyncHandler(async (req, res) => {
+  const ngo = await Ngo.findOne({ _id: req.ngo?._id }).populate({
+    path: "donations",
+  });
+  //console.log(user);
+  return res.status(201).json(
+    new ApiResponse(
+      200,
+      {
+        Donations: ngo.donations,
+      },
+      "fetched donations successfully"
+    )
+  );
+});
+export {
+  ngoSignUp,
+  loginNgo,
+  logoutNgo,
+  refreshAccessToken,
+  changeNgoPassword,
+  getCurrentNgo,
+  getNgoDonations
+};

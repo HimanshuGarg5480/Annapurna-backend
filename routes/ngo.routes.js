@@ -2,6 +2,8 @@ import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
   changeNgoPassword,
+  getCurrentNgo,
+  getNgoDonations,
   loginNgo,
   logoutNgo,
   ngoSignUp,
@@ -25,5 +27,7 @@ router.route("/login").post(loginNgo);
 router.route("/logout").post(verifyNgoJWT, logoutNgo);
 router.route("/refresh-token").post(refreshAccessToken);
 router.route("/change-password").post(verifyNgoJWT,changeNgoPassword);
+router.route("/get-current-ngo").get(verifyNgoJWT,getCurrentNgo);
+router.route("/get-ngo-donations").get(verifyNgoJWT,getNgoDonations);
 
 export default router;
