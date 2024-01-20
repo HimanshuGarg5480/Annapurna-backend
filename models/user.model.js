@@ -39,6 +39,14 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
     },
+    donatedTo: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Ngo",
+        },
+      ],
+    },
     donations: {
       type: [
         {

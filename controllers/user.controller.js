@@ -255,6 +255,22 @@ const getUserDonations = asyncHandler(async (req, res) => {
   );
 });
 
+const getUserDonatedTo = asyncHandler(async (req, res) => {
+  const user = await User.findOne({ _id: req.user?._id }).populate({
+    path: "ngos",
+  });
+  //console.log(user);
+  return res.status(201).json(
+    new ApiResponse(
+      200,
+      {
+        Donations: user.donatedTo,
+      },
+      "fetched ngos successfully"
+    )
+  );
+});
+
 export {
   registerUser,
   loginUser,
@@ -263,4 +279,5 @@ export {
   changeUserPassword,
   getCurrentUser,
   getUserDonations,
+  getUserDonatedTo
 };

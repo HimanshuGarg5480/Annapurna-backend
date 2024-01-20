@@ -253,6 +253,22 @@ const getNgoDonations = asyncHandler(async (req, res) => {
     )
   );
 });
+
+const getNgoDonatedBy = asyncHandler(async (req, res) => {
+  const ngo = await Ngo.findOne({ _id: req.ngo?._id }).populate({
+    path: "users",
+  });
+  //console.log(user);
+  return res.status(201).json(
+    new ApiResponse(
+      200,
+      {
+        Donations: ngo.donationBy,
+      },
+      "fetched Users successfully"
+    )
+  );
+});
 export {
   ngoSignUp,
   loginNgo,
@@ -260,5 +276,6 @@ export {
   refreshAccessToken,
   changeNgoPassword,
   getCurrentNgo,
-  getNgoDonations
+  getNgoDonations,
+  getNgoDonatedBy
 };

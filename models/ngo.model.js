@@ -49,6 +49,14 @@ const ngoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  donationBy: {
+    type: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+  },
   donations: [
     {
       type: mongoose.Schema.Types.ObjectId,

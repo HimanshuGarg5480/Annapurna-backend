@@ -3,6 +3,7 @@ import { upload } from "../middlewares/multer.middleware.js";
 import {
   changeNgoPassword,
   getCurrentNgo,
+  getNgoDonatedBy,
   getNgoDonations,
   loginNgo,
   logoutNgo,
@@ -29,5 +30,6 @@ router.route("/refresh-token").post(refreshAccessToken);
 router.route("/change-password").post(verifyNgoJWT,changeNgoPassword);
 router.route("/get-current-ngo").get(verifyNgoJWT,getCurrentNgo);
 router.route("/get-ngo-donations").get(verifyNgoJWT,getNgoDonations);
+router.route("/get-ngo-donatedby").get(verifyNgoJWT,getNgoDonatedBy);
 
 export default router;
