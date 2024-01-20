@@ -214,4 +214,22 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(401, error?.message || "Invalid Refresh Token");
   }
 }); 
-export { ngoSignUp,loginNgo,logoutNgo,refreshAccessToken};
+
+const changeNgoPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+  if (newPassword != confirmPassword) {
+    throw new ApiError(401, "newPassword and confirmPassword are different");
+  }
+  const ngo = await findById(req.ngo?._id);
+  const isPasswordCorrect = await ngo.isPasswordCorrect(oldPassword);
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, "wrong old password");
+  }
+  ngo.password = newPassword;
+  await ngo.save({ validateBeforeSave: false });
+
+  res
+    .status(201)
+    .json(new ApiResponse(200, {}, "password changed successfully"));
+});
+export { ngoSignUp,loginNgo,logoutNgo,refreshAccessToken,changeNgoPassword};
