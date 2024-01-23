@@ -21,6 +21,21 @@ const generateAccessAndRefreshToken = async function (ngo_id) {
     );
   }
 };
+
+function calculateHaversine(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the Earth in kilometers
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c; // Distance in kilometers
+  return distance;
+}
 // Create a new ngo
 const ngoSignUp = asyncHandler(async (req, res) => {
   const {
@@ -269,6 +284,35 @@ const getNgoDonatedBy = asyncHandler(async (req, res) => {
     )
   );
 });
+
+const getNgoNearMe = asyncHandler(async (req, res) => {
+  const userLat = parseFloat(req.body.latitude);
+  const userLon = parseFloat(req.body.longitude);
+
+  if (isNaN(userLat) || isNaN(userLon)) {
+    return new ApiError(400, "Invalid coordinates");
+  }
+  const ngo = await Ngo.find();
+  const nearbyNGOs = ngo.filter((ngo) => {
+    const distance = calculateHaversine(
+      userLat,
+      userLon,
+      parseFloat(ngo.latitude),
+      parseFloat(ngo.logitude)
+    );
+    return distance <= 5;
+  });
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { ngos: nearbyNGOs },
+        "fetched nearby ngos successfully"
+      )
+    );
+});
 export {
   ngoSignUp,
   loginNgo,
@@ -277,5 +321,6 @@ export {
   changeNgoPassword,
   getCurrentNgo,
   getNgoDonations,
-  getNgoDonatedBy
+  getNgoDonatedBy,
+  getNgoNearMe,
 };

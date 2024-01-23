@@ -5,6 +5,7 @@ import {
   getCurrentNgo,
   getNgoDonatedBy,
   getNgoDonations,
+  getNgoNearMe,
   loginNgo,
   logoutNgo,
   ngoSignUp,
@@ -31,5 +32,6 @@ router.route("/change-password").post(verifyNgoJWT,changeNgoPassword);
 router.route("/get-current-ngo").get(verifyNgoJWT,getCurrentNgo);
 router.route("/get-ngo-donations").get(verifyNgoJWT,getNgoDonations);
 router.route("/get-ngo-donatedby").get(verifyNgoJWT,getNgoDonatedBy);
+router.route("/get-ngos-near-me").get(verifyNgoJWT,getNgoNearMe);
 
 export default router;
